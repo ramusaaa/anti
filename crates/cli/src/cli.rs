@@ -10,8 +10,9 @@ impl ApiClient {
         let file_scanner = hadron_core::FileScanner::new().expect("Failed to create file scanner");
         let removable_media_detector = std::sync::Arc::new(
             tokio::sync::Mutex::new(hadron_core::RemovableMediaDetector::new())
+
         );
-        Self { 
+        Self {
             _pipe_name: pipe_name,
             file_scanner,
             removable_media_detector,
@@ -106,7 +107,7 @@ impl ApiClient {
             }
         }
         combined_result.complete();
-        println!("✅ Real scan completed: {} files scanned, {} threats found", 
+        println!("✅ Real scan completed: {} files scanned, {} threats found",
                 combined_result.scanned_files, combined_result.threats_found.len());
         Ok(combined_result)
     }
@@ -506,12 +507,12 @@ impl CliApp {
                 if !force {
                     println!();
                     println!("⚠️  {} Auto-clean will:", "WARNING:".red().bold());
-                    println!("   🗑️  Delete {} high-risk files", 
+                    println!("   🗑️  Delete {} high-risk files",
                         scan_result.threats_found.iter()
                             .filter(|t| t.name.contains("High-Risk File Extension"))
                             .count().to_string().red()
                     );
-                    println!("   🔒 Quarantine {} medium/low-risk files", 
+                    println!("   🔒 Quarantine {} medium/low-risk files",
                         scan_result.threats_found.iter()
                             .filter(|t| !t.name.contains("High-Risk File Extension"))
                             .count().to_string().yellow()
@@ -606,7 +607,7 @@ impl CliApp {
         println!();
         println!("{}", "=== Real Scan Results ===".bold().cyan());
         println!("Files scanned: {}", result.scanned_files.to_string().green());
-        println!("Threats found: {}", 
+        println!("Threats found: {}",
             if result.threats_found.is_empty() {
                 "0".green()
             } else {
@@ -622,7 +623,7 @@ impl CliApp {
             println!();
             println!("{}", "🚨 Threats Detected:".red().bold());
             for (i, threat) in result.threats_found.iter().enumerate() {
-                println!("{}. {} {}", 
+                println!("{}. {} {}",
                     i + 1,
                     "⚠️".red(),
                     threat.name.red().bold()
@@ -637,14 +638,14 @@ impl CliApp {
         }
         if !result.errors.is_empty() {
             println!();
-            println!("{} ({} errors occurred during scan)", 
-                "⚠️ Errors:".yellow().bold(), 
+            println!("{} ({} errors occurred during scan)",
+                "⚠️ Errors:".yellow().bold(),
                 result.errors.len()
             );
             if self.verbose {
                 for error in &result.errors {
-                    println!("  {} {}: {}", 
-                        "•".yellow(), 
+                    println!("  {} {}: {}",
+                        "•".yellow(),
                         error.file_path.display().to_string().dimmed(),
                         error.error_message
                     );
@@ -673,7 +674,7 @@ impl CliApp {
                     return Ok(());
                 }
                 for (i, device) in devices.iter().enumerate() {
-                    println!("{}. {} {}", 
+                    println!("{}. {} {}",
                         i + 1,
                         "📱".cyan(),
                         device.device_name.bold()
@@ -682,11 +683,11 @@ impl CliApp {
                     println!("   Mount Point: {}", device.mount_point.display().to_string().cyan());
                     println!("   Type: {:?}", device.device_type);
                     println!("   File System: {}", device.file_system);
-                    println!("   Size: {} / {} free", 
+                    println!("   Size: {} / {} free",
                         self.format_bytes(device.total_size_bytes),
                         self.format_bytes(device.free_space_bytes)
                     );
-                    println!("   Trusted: {}", 
+                    println!("   Trusted: {}",
                         if device.is_trusted { "Yes".green() } else { "No".red() }
                     );
                     if let Some(last_scan) = device.last_scan_time {
@@ -711,13 +712,13 @@ impl CliApp {
                 let mut total_threats = 0;
                 let mut total_duration = 0;
                 for result in &results {
-                    println!("📱 Device: {} {}", 
+                    println!("📱 Device: {} {}",
                         "🔍".green(),
                         result.device.device_name.bold()
                     );
                     println!("   Mount Point: {}", result.device.mount_point.display());
                     println!("   Files Scanned: {}", result.scan_result.scanned_files.to_string().green());
-                    println!("   Threats Found: {}", 
+                    println!("   Threats Found: {}",
                         if result.scan_result.threats_found.is_empty() {
                             "0".green()
                         } else {
@@ -728,7 +729,7 @@ impl CliApp {
                     if !result.scan_result.threats_found.is_empty() {
                         println!("   {} Threats:", "🚨".red());
                         for threat in &result.scan_result.threats_found {
-                            println!("     • {} ({})", 
+                            println!("     • {} ({})",
                                 threat.name.red(),
                                 threat.file_path.display().to_string().yellow()
                             );
@@ -742,7 +743,7 @@ impl CliApp {
                 println!("{}", "=== Summary ===".bold().cyan());
                 println!("Devices Scanned: {}", results.len().to_string().green());
                 println!("Total Files: {}", total_files.to_string().green());
-                println!("Total Threats: {}", 
+                println!("Total Threats: {}",
                     if total_threats == 0 {
                         total_threats.to_string().green()
                     } else {
@@ -775,7 +776,7 @@ impl CliApp {
             RemovableMediaAction::Trust { device_id, trusted } => {
                 match api_client.mark_device_trusted(device_id, *trusted).await {
                     Ok(()) => {
-                        println!("{} Device {} marked as {}", 
+                        println!("{} Device {} marked as {}",
                             "✅".green(),
                             device_id.cyan(),
                             if *trusted { "trusted".green() } else { "untrusted".red() }
@@ -940,9 +941,9 @@ impl CliApp {
                         if self.verbose {
                             let elapsed = start_time.elapsed();
                             if let Some(progress) = &progress_info {
-                                println!("Scan running... ({}s elapsed) - {}/{} files scanned, {} threats found", 
-                                    elapsed.as_secs(), 
-                                    progress.files_scanned, 
+                                println!("Scan running... ({}s elapsed) - {}/{} files scanned, {} threats found",
+                                    elapsed.as_secs(),
+                                    progress.files_scanned,
                                     progress.total_files,
                                     progress.threats_found
                                 );
@@ -1000,7 +1001,7 @@ impl CliApp {
                     Ok(progress) => {
                         println!("Files scanned: {}", progress.files_scanned.to_string().green());
                         println!("Total files: {}", progress.total_files);
-                        println!("Threats found: {}", 
+                        println!("Threats found: {}",
                             if progress.threats_found > 0 {
                                 progress.threats_found.to_string().red().bold()
                             } else {
@@ -1021,7 +1022,7 @@ impl CliApp {
     fn format_scan_result(&self, result: &ScanResult) {
         use tabled::{Table, Tabled};
         println!("Files scanned: {}", result.scanned_files.to_string().green());
-        println!("Threats found: {}", 
+        println!("Threats found: {}",
             if result.threats_found.is_empty() {
                 "0".green()
             } else {
@@ -1070,14 +1071,14 @@ impl CliApp {
         }
         if !result.errors.is_empty() {
             println!();
-            println!("{} ({} errors occurred during scan)", 
-                "Errors:".yellow().bold(), 
+            println!("{} ({} errors occurred during scan)",
+                "Errors:".yellow().bold(),
                 result.errors.len()
             );
             if self.verbose {
                 for error in &result.errors {
-                    println!("  {} {}: {}", 
-                        "•".yellow(), 
+                    println!("  {} {}: {}",
+                        "•".yellow(),
                         error.file_path.display().to_string().dimmed(),
                         error.error_message
                     );
@@ -1126,7 +1127,7 @@ impl CliApp {
         println!("{}", "Last Activities:".bold());
         if let Some(last_scan) = status.last_scan_time {
             let time_ago = self.format_time_ago(last_scan);
-            println!("  Last Scan: {} ({})", 
+            println!("  Last Scan: {} ({})",
                 last_scan.format("%Y-%m-%d %H:%M:%S UTC").to_string().cyan(),
                 time_ago
             );
@@ -1136,12 +1137,12 @@ impl CliApp {
         if let Some(last_update) = status.last_update_time {
             let time_ago = self.format_time_ago(last_update);
             let update_status = if status.needs_update() {
-                format!("{} ({})", 
+                format!("{} ({})",
                     last_update.format("%Y-%m-%d %H:%M:%S UTC").to_string().yellow(),
                     "Update needed".red()
                 )
             } else {
-                format!("{} ({})", 
+                format!("{} ({})",
                     last_update.format("%Y-%m-%d %H:%M:%S UTC").to_string().cyan(),
                     time_ago
                 )
@@ -1325,7 +1326,7 @@ impl CliApp {
             }
         } else {
             println!();
-            println!("Use {} to restore a file or {} to delete permanently", 
+            println!("Use {} to restore a file or {} to delete permanently",
                 "av-cli quarantine restore <id>".cyan(),
                 "av-cli quarantine delete <id>".cyan()
             );
@@ -1364,7 +1365,7 @@ impl CliApp {
                     } else {
                         println!("{} {} update(s) available", "!".yellow().bold(), updates.len());
                         for update in &updates {
-                            println!("  {} {} -> {}", 
+                            println!("  {} {} -> {}",
                                 "•".yellow(),
                                 update.component_name.cyan(),
                                 update.new_version.green()
@@ -1458,19 +1459,19 @@ impl CliApp {
                         match key.as_str() {
                             "realtime_protection" => {
                                 let enabled = value.parse::<bool>().unwrap_or(false);
-                                println!("Real-time protection {}", 
+                                println!("Real-time protection {}",
                                     if enabled { "enabled".green() } else { "disabled".red() }
                                 );
                             }
                             "auto_update" => {
                                 let enabled = value.parse::<bool>().unwrap_or(false);
-                                println!("Auto update {}", 
+                                println!("Auto update {}",
                                     if enabled { "enabled".green() } else { "disabled".red() }
                                 );
                             }
                             "scan_archives" => {
                                 let enabled = value.parse::<bool>().unwrap_or(false);
-                                println!("Archive scanning {}", 
+                                println!("Archive scanning {}",
                                     if enabled { "enabled".green() } else { "disabled".red() }
                                 );
                             }
@@ -1495,22 +1496,22 @@ impl CliApp {
         println!("{}", "=== Current Configuration ===".bold().cyan());
         println!();
         println!("{}", "Real-time Protection:".bold());
-        println!("  Enabled: {}", 
+        println!("  Enabled: {}",
             if config.realtime_protection.enabled { "true".green() } else { "false".red() }
         );
-        println!("  Scan on Access: {}", 
+        println!("  Scan on Access: {}",
             if config.realtime_protection.scan_on_access { "true".green() } else { "false".red() }
         );
-        println!("  Scan on Write: {}", 
+        println!("  Scan on Write: {}",
             if config.realtime_protection.scan_on_write { "true".green() } else { "false".red() }
         );
-        println!("  Scan Archives: {}", 
+        println!("  Scan Archives: {}",
             if config.realtime_protection.scan_archives { "true".green() } else { "false".red() }
         );
-        println!("  Scan Email Attachments: {}", 
+        println!("  Scan Email Attachments: {}",
             if config.realtime_protection.scan_email_attachments { "true".green() } else { "false".red() }
         );
-        println!("  Scan Network Drives: {}", 
+        println!("  Scan Network Drives: {}",
             if config.realtime_protection.scan_network_drives { "true".green() } else { "false".red() }
         );
         println!();
@@ -1518,16 +1519,16 @@ impl CliApp {
         println!("  Max File Size: {}", format!("{} MB", config.scan_settings.max_file_size_mb).cyan());
         println!("  Scan Timeout: {}", format!("{} seconds", config.scan_settings.scan_timeout_seconds).cyan());
         println!("  Heuristic Level: {}", config.scan_settings.heuristic_level.to_string().cyan());
-        println!("  Use Machine Learning: {}", 
+        println!("  Use Machine Learning: {}",
             if config.scan_settings.use_machine_learning { "true".green() } else { "false".red() }
         );
         println!();
         println!("{}", "Update Settings:".bold());
-        println!("  Auto Update: {}", 
+        println!("  Auto Update: {}",
             if config.update_settings.auto_update_enabled { "true".green() } else { "false".red() }
         );
         println!("  Update Frequency: {}", format!("{} hours", config.update_settings.update_frequency_hours).cyan());
-        println!("  Use Delta Updates: {}", 
+        println!("  Use Delta Updates: {}",
             if config.update_settings.use_delta_updates { "true".green() } else { "false".red() }
         );
         println!();
@@ -1557,7 +1558,7 @@ impl CliApp {
             println!("{}", "Quarantine Settings:".bold());
             println!("  Max Size: {}", format!("{} GB", config.quarantine_settings.max_size_gb).cyan());
             println!("  Auto Delete After: {}", format!("{} days", config.quarantine_settings.auto_delete_days).cyan());
-            println!("  Encryption Enabled: {}", 
+            println!("  Encryption Enabled: {}",
                 if config.quarantine_settings.encrypt_files { "true".green() } else { "false".red() }
             );
             println!();

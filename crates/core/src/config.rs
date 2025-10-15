@@ -135,42 +135,42 @@ impl AntivirusConfig {
     pub fn validate(&self) -> Result<(), crate::ConfigError> {
         if self.service.max_concurrent_scans == 0 {
             return Err(crate::ConfigError::ValidationFailed(
-                "max_concurrent_scans must be greater than 0".to_string()
+                "max_concurrent_scans_must_be_greater_than_0".to_string()
             ));
         }
         if self.service.scan_timeout_seconds == 0 {
             return Err(crate::ConfigError::ValidationFailed(
-                "scan_timeout_seconds must be greater than 0".to_string()
+                "scan_timeout_seconds_must_be_greater_than_0".to_string()
             ));
         }
         if self.quarantine.max_quarantine_size_mb == 0 {
             return Err(crate::ConfigError::ValidationFailed(
-                "max_quarantine_size_mb must be greater than 0".to_string()
+                "max_quarantine_size_mb_must_be_greater_than_0".to_string()
             ));
         }
         if self.scan_settings.max_file_size_mb == 0 {
             return Err(crate::ConfigError::ValidationFailed(
-                "max_file_size_mb must be greater than 0".to_string()
+                "max_file_size_mb_must_be_greater_than_0".to_string()
             ));
         }
         if self.scan_settings.heuristic_level > 5 {
             return Err(crate::ConfigError::ValidationFailed(
-                "heuristic_level must be between 0 and 5".to_string()
+                "heuristic_level_must_be_between_0_and_5".to_string()
             ));
         }
         if self.update.update_frequency_hours == 0 {
             return Err(crate::ConfigError::ValidationFailed(
-                "update_frequency_hours must be greater than 0".to_string()
+                "update_frequency_hours_must_be_greater_than_0".to_string()
             ));
         }
         if self.logging.max_log_file_size_mb == 0 {
             return Err(crate::ConfigError::ValidationFailed(
-                "max_log_file_size_mb must be greater than 0".to_string()
+                "max_log_file_size_mb_must_be_greater_than_0".to_string()
             ));
         }
         if self.logging.max_log_files == 0 {
             return Err(crate::ConfigError::ValidationFailed(
-                "max_log_files must be greater than 0".to_string()
+                "max_log_files_must_be_greater_than_0".to_string()
             ));
         }
         Ok(())
@@ -249,13 +249,13 @@ impl ConfigurationManager {
     }
     pub fn save_config(&self) -> Result<(), ConfigError> {
         let config_str = toml::to_string_pretty(&self.config)
-            .map_err(|e| ConfigError::Message(format!("Failed to serialize config: {}", e)))?;
+            .map_err(|e| ConfigError::Message(format!("Failed_to_serialize_config: {}", e)))?;
         if let Some(parent) = self.config_path.parent() {
             std::fs::create_dir_all(parent)
-                .map_err(|e| ConfigError::Message(format!("Failed to create config directory: {}", e)))?;
+                .map_err(|e| ConfigError::Message(format!("Failed_to_create_config_directory: {}", e)))?;
         }
         std::fs::write(&self.config_path, config_str)
-            .map_err(|e| ConfigError::Message(format!("Failed to write config file: {}", e)))?;
+            .map_err(|e| ConfigError::Message(format!("Failed_to_write_config_file: {}", e)))?;
         Ok(())
     }
     pub fn reload_config(&mut self) -> Result<(), ConfigError> {
@@ -265,42 +265,42 @@ impl ConfigurationManager {
     pub fn validate_config(&self) -> Result<(), crate::ConfigError> {
         if self.config.service.max_concurrent_scans == 0 {
             return Err(crate::ConfigError::ValidationFailed(
-                "max_concurrent_scans must be greater than 0".to_string()
+                "max_concurrent_scans_must_be_greater_than_0".to_string()
             ));
         }
         if self.config.service.scan_timeout_seconds == 0 {
             return Err(crate::ConfigError::ValidationFailed(
-                "scan_timeout_seconds must be greater than 0".to_string()
+                "scan_timeout_seconds_must_be_greater_than_0".to_string()
             ));
         }
         if self.config.quarantine.max_quarantine_size_mb == 0 {
             return Err(crate::ConfigError::ValidationFailed(
-                "max_quarantine_size_mb must be greater than 0".to_string()
+                "max_quarantine_size_mb_must_be_greater_than_0".to_string()
             ));
         }
         if self.config.scan_settings.max_file_size_mb == 0 {
             return Err(crate::ConfigError::ValidationFailed(
-                "max_file_size_mb must be greater than 0".to_string()
+                "max_file_size_mb_must_be_greater_than_0".to_string()
             ));
         }
         if self.config.scan_settings.heuristic_level > 5 {
             return Err(crate::ConfigError::ValidationFailed(
-                "heuristic_level must be between 0 and 5".to_string()
+                "heuristic_level_must_be_between_0_and_5".to_string()
             ));
         }
         if self.config.update.update_frequency_hours == 0 {
             return Err(crate::ConfigError::ValidationFailed(
-                "update_frequency_hours must be greater than 0".to_string()
+                "update_frequency_hours_must_be_greater_than_0".to_string()
             ));
         }
         if self.config.logging.max_log_file_size_mb == 0 {
             return Err(crate::ConfigError::ValidationFailed(
-                "max_log_file_size_mb must be greater than 0".to_string()
+                "max_log_file_size_mb_must_be_greater_than_0".to_string()
             ));
         }
         if self.config.logging.max_log_files == 0 {
             return Err(crate::ConfigError::ValidationFailed(
-                "max_log_files must be greater than 0".to_string()
+                "max_log_files_must_be_greater_than_0".to_string()
             ));
         }
         Ok(())

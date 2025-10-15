@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use uuid::Uuid;
 use crate::Result;
+use bytes::Bytes;
 pub type ThreatId = Uuid;
 pub type ScanId = Uuid;
 pub type QuarantineId = Uuid;
@@ -213,7 +214,7 @@ impl ScanResult {
             let duration = end_time.signed_duration_since(self.start_time);
             self.statistics.scan_duration_ms = duration.num_milliseconds().max(0) as u64;
             if self.scanned_files > 0 {
-                self.statistics.average_scan_time_ms = 
+                self.statistics.average_scan_time_ms =
                     self.statistics.scan_duration_ms as f64 / self.scanned_files as f64;
             }
         }
@@ -770,10 +771,10 @@ mod tests {
             PathBuf::from("/tmp/malware.exe"),
             threat,
             1024,
-            PathBuf::from("/quarantine/encrypted_file"),
+            PathBuf::from("/quarantine/encrypted_file "),
         );
-        assert_eq!(entry.get_file_name(), "malware.exe");
-        assert_eq!(entry.get_formatted_size(), "1.00 KB");
+        assert_eq!(entry.get_file_name(), "malware.exe ");
+        assert_eq!(entry.get_formatted_size(), "1.00 KB ");
         assert_eq!(entry.age_in_days(), 0);
         assert!(!entry.should_auto_delete(30));
     }

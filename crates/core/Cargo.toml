@@ -13,6 +13,7 @@ edition.workspace = true
 
 [dependencies]
 # Workspace dependencies
+bytes = "1.0"
 tokio = { workspace = true }
 async-trait = { workspace = true }
 serde = { workspace = true }

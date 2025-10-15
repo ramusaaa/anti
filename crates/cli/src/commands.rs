@@ -1,8 +1,8 @@
-use hadron_core::{Result, ScanType, SystemStatus, NetworkMonitorConfig};
 use crate::cli::ApiClient;
-use std::path::PathBuf;
-use std::net::IpAddr;
+use hadron_core::{NetworkMonitorConfig, Result, ScanType, SystemStatus};
 use std::io::{self, Write};
+use std::net::IpAddr;
+use std::path::PathBuf;
 pub struct ScanCommand;
 impl ScanCommand {
     pub async fn execute(
@@ -77,15 +77,17 @@ impl StatusCommand {
         Ok(())
     }
     fn print_status(status: &SystemStatus, verbose: bool) {
-        println!("=== Windows Antivirus Status ===");
+        println!("=== Antivirus Status ===");
         println!();
         println!("Protection Status:");
-        println!("  Real-time Protection: {}", 
-                if status.realtime_protection_enabled { 
-                    "✓ Enabled" 
-                } else { 
-                    "✗ Disabled" 
-                });
+        println!(
+            "  Real-time Protection: {}",
+            if status.realtime_protection_enabled {
+                "✓ Enabled"
+            } else {
+                "✗ Disabled"
+            }
+        );
         println!();
         println!("Version Information:");
         println!("  Engine Version: {}", status.engine_version);
@@ -98,13 +100,19 @@ impl StatusCommand {
             println!("  Last Scan: Never");
         }
         if let Some(last_update) = status.last_update_time {
-            println!("  Last Update: {}", last_update.format("%Y-%m-%d %H:%M:%S UTC"));
+            println!(
+                "  Last Update: {}",
+                last_update.format("%Y-%m-%d %H:%M:%S UTC")
+            );
         } else {
             println!("  Last Update: Never");
         }
         println!();
         println!("Threat Statistics:");
-        println!("  Threats Detected Today: {}", status.threats_detected_today);
+        println!(
+            "  Threats Detected Today: {}",
+            status.threats_detected_today
+        );
         println!("  Files in Quarantine: {}", status.quarantine_count);
         if verbose {
             println!();
@@ -163,7 +171,10 @@ impl UpdateCommand {
         if verbose {
             println!("Current signature version: 1.0.0");
             println!("Current engine version: {}", env!("CARGO_PKG_VERSION"));
-            println!("Last update check: {}", chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC"));
+            println!(
+                "Last update check: {}",
+                chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
+            );
         }
         Ok(())
     }
@@ -213,9 +224,12 @@ impl MemoryScanCommand {
         println!("\n=== Memory Scan Results ===");
         println!("Process ID: {}", process_id);
         println!("Memory Regions Scanned: {}", regions_scanned);
-        println!("Total Bytes Scanned: {:.2} MB", bytes_scanned as f64 / (1024.0 * 1024.0));
+        println!(
+            "Total Bytes Scanned: {:.2} MB",
+            bytes_scanned as f64 / (1024.0 * 1024.0)
+        );
         if threats_found > 0 {
-            println!("⚠️  Threats Found: {}", threats_found);
+            println!(" Threats Found: {}", threats_found);
             println!("\nDetected Threats:");
             println!("  - Suspicious Memory Region (Heuristic Detection)");
             println!("    Address: 0x{:08X}", 0x10000000 + process_id * 0x1000);
@@ -236,7 +250,10 @@ impl MemoryScanCommand {
             println!("    Module: kernel32.dll");
             println!("    Severity: High");
             if verbose {
-                println!("    Hook Address: 0x{:08X}", 0x7C800000 + process_id * 0x100);
+                println!(
+                    "    Hook Address: 0x{:08X}",
+                    0x7C800000 + process_id * 0x100
+                );
                 println!("    Detection Method: Function prologue analysis");
             }
         }
@@ -246,8 +263,10 @@ impl MemoryScanCommand {
             println!("  Executable Regions: {}", regions_scanned / 3);
             println!("  Signature Matches: 0");
             println!("  Heuristic Detections: {}", threats_found);
-            println!("  Average Scan Speed: {:.2} MB/s", 
-                     bytes_scanned as f64 / (1024.0 * 1024.0 * 2.1));
+            println!(
+                "  Average Scan Speed: {:.2} MB/s",
+                bytes_scanned as f64 / (1024.0 * 1024.0 * 2.1)
+            );
         }
         Ok(())
     }
@@ -265,8 +284,12 @@ impl MemoryScanCommand {
         let mut processes_with_threats = 0;
         for (index, &process_id) in process_ids.iter().enumerate() {
             if verbose {
-                println!("\n[{}/{}] Scanning process {}...", 
-                         index + 1, total_processes, process_id);
+                println!(
+                    "\n[{}/{}] Scanning process {}...",
+                    index + 1,
+                    total_processes,
+                    process_id
+                );
             } else {
                 print!(".");
                 std::io::Write::flush(&mut std::io::stdout()).unwrap();
@@ -281,7 +304,10 @@ impl MemoryScanCommand {
             if threats_found > 0 {
                 processes_with_threats += 1;
                 if verbose {
-                    println!("  ⚠️  {} threats found in process {}", threats_found, process_id);
+                    println!(
+                        "  ⚠️  {} threats found in process {}",
+                        threats_found, process_id
+                    );
                 }
             }
         }
@@ -293,17 +319,25 @@ impl MemoryScanCommand {
         println!("Processes with Threats: {}", processes_with_threats);
         println!("Total Threats Found: {}", total_threats);
         println!("Total Memory Regions: {}", total_regions);
-        println!("Total Bytes Scanned: {:.2} GB", total_bytes as f64 / (1024.0 * 1024.0 * 1024.0));
+        println!(
+            "Total Bytes Scanned: {:.2} GB",
+            total_bytes as f64 / (1024.0 * 1024.0 * 1024.0)
+        );
         println!("Scan Duration: {:.1} seconds", total_processes as f64 * 0.5);
         if total_threats > 0 {
-            println!("\n⚠️  WARNING: {} threats detected across {} processes", 
-                     total_threats, processes_with_threats);
+            println!(
+                "\n⚠️  WARNING: {} threats detected across {} processes",
+                total_threats, processes_with_threats
+            );
             println!("Recommendation: Run detailed scan on affected processes");
             if verbose {
                 println!("\nAffected Processes:");
                 for &process_id in &process_ids {
                     if process_id % 4 == 0 {
-                        println!("  - Process {}: Suspicious memory region detected", process_id);
+                        println!(
+                            "  - Process {}: Suspicious memory region detected",
+                            process_id
+                        );
                     }
                 }
             }
@@ -312,8 +346,10 @@ impl MemoryScanCommand {
         }
         if verbose {
             println!("\nPerformance Statistics:");
-            println!("  Average Scan Speed: {:.2} MB/s", 
-                     total_bytes as f64 / (1024.0 * 1024.0 * total_processes as f64 * 0.5));
+            println!(
+                "  Average Scan Speed: {:.2} MB/s",
+                total_bytes as f64 / (1024.0 * 1024.0 * total_processes as f64 * 0.5)
+            );
             println!("  Memory Usage: ~50 MB");
             println!("  CPU Usage: ~15%");
         }
@@ -362,15 +398,24 @@ impl ConfigCommand {
         match key {
             "realtime_protection" => {
                 let enabled = value.parse::<bool>().unwrap_or(false);
-                println!("Real-time protection {}", if enabled { "enabled" } else { "disabled" });
+                println!(
+                    "Real-time protection {}",
+                    if enabled { "enabled" } else { "disabled" }
+                );
             }
             "auto_update" => {
                 let enabled = value.parse::<bool>().unwrap_or(false);
-                println!("Auto update {}", if enabled { "enabled" } else { "disabled" });
+                println!(
+                    "Auto update {}",
+                    if enabled { "enabled" } else { "disabled" }
+                );
             }
             "scan_archives" => {
                 let enabled = value.parse::<bool>().unwrap_or(false);
-                println!("Archive scanning {}", if enabled { "enabled" } else { "disabled" });
+                println!(
+                    "Archive scanning {}",
+                    if enabled { "enabled" } else { "disabled" }
+                );
             }
             _ => {
                 println!("Configuration key '{}' set to '{}'", key, value);
@@ -422,13 +467,25 @@ impl DiskWipeCommand {
             println!("Device ID: {}", device.device_id);
             println!("  Name: {}", device.device_name);
             println!("  Mount Point: {}", device.mount_point.display());
-            println!("  Size: {:.2} GB", device.total_size_bytes as f64 / (1024.0 * 1024.0 * 1024.0));
+            println!(
+                "  Size: {:.2} GB",
+                device.total_size_bytes as f64 / (1024.0 * 1024.0 * 1024.0)
+            );
             println!("  File System: {}", device.file_system);
             println!("  Type: {:?}", device.device_type);
             if verbose {
-                println!("  Free Space: {:.2} GB", device.free_space_bytes as f64 / (1024.0 * 1024.0 * 1024.0));
-                println!("  Trusted: {}", if device.is_trusted { "Yes" } else { "No" });
-                println!("  Mount Time: {}", device.mount_time.format("%Y-%m-%d %H:%M:%S UTC"));
+                println!(
+                    "  Free Space: {:.2} GB",
+                    device.free_space_bytes as f64 / (1024.0 * 1024.0 * 1024.0)
+                );
+                println!(
+                    "  Trusted: {}",
+                    if device.is_trusted { "Yes" } else { "No" }
+                );
+                println!(
+                    "  Mount Time: {}",
+                    device.mount_time.format("%Y-%m-%d %H:%M:%S UTC")
+                );
                 if let Some(last_scan) = device.last_scan_time {
                     println!("  Last Scan: {}", last_scan.format("%Y-%m-%d %H:%M:%S UTC"));
                 } else {
@@ -443,22 +500,36 @@ impl DiskWipeCommand {
         Ok(())
     }
     pub async fn wipe_device(
-        api_client: &ApiClient, 
-        device_id: &str, 
-        secure: bool, 
-        force: bool, 
-        verbose: bool
+        api_client: &ApiClient,
+        device_id: &str,
+        secure: bool,
+        force: bool,
+        verbose: bool,
     ) -> Result<()> {
         println!("=== Disk Wipe Operation ===");
         if verbose {
             println!("Device ID: {}", device_id);
-            println!("Wipe Type: {}", if secure { "Secure (3-pass overwrite)" } else { "Quick" });
+            println!(
+                "Wipe Type: {}",
+                if secure {
+                    "Secure (3-pass overwrite)"
+                } else {
+                    "Quick"
+                }
+            );
             println!("Force Mode: {}", force);
         }
         if !force {
             println!("⚠️  WARNING: This will permanently delete ALL data on the device!");
             println!("Device: {}", device_id);
-            println!("Type: {}", if secure { "Secure wipe (slower, more secure)" } else { "Quick wipe (faster)" });
+            println!(
+                "Type: {}",
+                if secure {
+                    "Secure wipe (slower, more secure)"
+                } else {
+                    "Quick wipe (faster)"
+                }
+            );
             println!();
             print!("Are you sure you want to continue? Type 'YES' to confirm: ");
             use std::io::{self, Write};
@@ -510,7 +581,10 @@ impl DiskWipeCommand {
             deleted_files += current_batch;
             let progress = (deleted_files as f32 / total_files as f32) * 100.0;
             if verbose {
-                println!("Progress: {}/{} files ({:.1}%)", deleted_files, total_files, progress);
+                println!(
+                    "Progress: {}/{} files ({:.1}%)",
+                    deleted_files, total_files, progress
+                );
             } else {
                 print!(".");
                 std::io::Write::flush(&mut std::io::stdout()).unwrap();
@@ -523,10 +597,10 @@ impl DiskWipeCommand {
             println!("Phase 3: Removing empty directories...");
             tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
         }
-        let duration = if secure { 
-            (total_files as f64 * 0.2) + 5.0 
-        } else { 
-            (total_files as f64 * 0.05) + 2.0 
+        let duration = if secure {
+            (total_files as f64 * 0.2) + 5.0
+        } else {
+            (total_files as f64 * 0.05) + 2.0
         };
         println!("\n=== Wipe Operation Complete ===");
         println!("Device: {}", device_name);
@@ -539,7 +613,10 @@ impl DiskWipeCommand {
         println!("✅ Device successfully wiped!");
         if verbose {
             println!("\nDetailed Statistics:");
-            println!("  Average Speed: {:.0} files/second", total_files as f64 / duration);
+            println!(
+                "  Average Speed: {:.0} files/second",
+                total_files as f64 / duration
+            );
             println!("  Data Destroyed: Permanently unrecoverable");
             println!("  Verification: Complete");
             if secure {
@@ -550,11 +627,7 @@ impl DiskWipeCommand {
         println!("\nThe device is now safe to remove or reuse.");
         Ok(())
     }
-    pub async fn scan_device(
-        api_client: &ApiClient,
-        device_id: &str,
-        verbose: bool
-    ) -> Result<()> {
+    pub async fn scan_device(api_client: &ApiClient, device_id: &str, verbose: bool) -> Result<()> {
         println!("=== Device Security Scan ===");
         let devices = api_client.get_removable_devices().await;
         let device = devices.iter().find(|d| d.device_id == device_id);
@@ -573,7 +646,7 @@ impl DiskWipeCommand {
         println!("Scanning for malware and threats...");
         let scan_phases = vec![
             ("Signature scanning", 3000),
-            ("Heuristic analysis", 2000), 
+            ("Heuristic analysis", 2000),
             ("Behavioral analysis", 1500),
             ("Rootkit detection", 1000),
         ];
@@ -621,13 +694,17 @@ impl DiskWipeCommand {
             println!("✅ No threats detected");
             println!("Device appears to be clean and safe to use.");
         }
-        println!("Scan Duration: {:.1} seconds", scan_result.scan_duration_ms as f64 / 1000.0);
+        println!(
+            "Scan Duration: {:.1} seconds",
+            scan_result.scan_duration_ms as f64 / 1000.0
+        );
         if verbose {
             println!("\nDetailed Statistics:");
             println!("  Files Scanned: {}", scan_result.scan_result.scanned_files);
             println!("  Scan Duration: {} ms", scan_result.scan_duration_ms);
             if scan_result.scan_duration_ms > 0 {
-                let files_per_second = (scan_result.scan_result.scanned_files as f64) / (scan_result.scan_duration_ms as f64 / 1000.0);
+                let files_per_second = (scan_result.scan_result.scanned_files as f64)
+                    / (scan_result.scan_duration_ms as f64 / 1000.0);
                 println!("  Scan Speed: {:.0} files/second", files_per_second);
             }
             println!("  Errors: {}", scan_result.scan_result.errors.len());
@@ -663,7 +740,8 @@ impl UsbProtectCommand {
             println!("  • Suspicious scripts");
             println!("  • Fake folder attacks");
         }
-        let usb_protection = hadron_core::UsbProtection::new(std::path::PathBuf::from("/tmp/quarantine"));
+        let usb_protection =
+            hadron_core::UsbProtection::new(std::path::PathBuf::from("/tmp/quarantine"));
         let detections = usb_protection.scan_usb_device(&device_path).await?;
         println!("\n=== USB Scan Results ===");
         if detections.is_empty() {
@@ -673,7 +751,8 @@ impl UsbProtectCommand {
             println!("⚠️  USB Threats Found: {}", detections.len());
             println!();
             for (i, detection) in detections.iter().enumerate() {
-                println!("{}. {} {}", 
+                println!(
+                    "{}. {} {}",
                     i + 1,
                     match detection.severity {
                         hadron_core::ThreatSeverity::Critical => "💀",
@@ -708,14 +787,27 @@ impl UsbProtectCommand {
                     _ => {}
                 }
             }
-            if autorun_count > 0 { println!("  🦠 Autorun Worms: {}", autorun_count); }
-            if shortcut_count > 0 { println!("  🔗 Shortcut Viruses: {}", shortcut_count); }
-            if hidden_count > 0 { println!("  👻 Hidden Malware: {}", hidden_count); }
-            if script_count > 0 { println!("  📜 Suspicious Scripts: {}", script_count); }
+            if autorun_count > 0 {
+                println!("  🦠 Autorun Worms: {}", autorun_count);
+            }
+            if shortcut_count > 0 {
+                println!("  🔗 Shortcut Viruses: {}", shortcut_count);
+            }
+            if hidden_count > 0 {
+                println!("  👻 Hidden Malware: {}", hidden_count);
+            }
+            if script_count > 0 {
+                println!("  📜 Suspicious Scripts: {}", script_count);
+            }
         }
         Ok(())
     }
-    pub async fn clean_device(api_client: &ApiClient, device_id: &str, force: bool, verbose: bool) -> Result<()> {
+    pub async fn clean_device(
+        api_client: &ApiClient,
+        device_id: &str,
+        force: bool,
+        verbose: bool,
+    ) -> Result<()> {
         println!("=== USB Device Cleaning ===");
         let devices = api_client.get_removable_devices().await;
         let device = devices.iter().find(|d| d.device_id == device_id);
@@ -748,7 +840,8 @@ impl UsbProtectCommand {
             }
         }
         println!("\n🧹 Starting USB device cleaning...");
-        let usb_protection = hadron_core::UsbProtection::new(std::path::PathBuf::from("/tmp/quarantine"));
+        let usb_protection =
+            hadron_core::UsbProtection::new(std::path::PathBuf::from("/tmp/quarantine"));
         let detections = usb_protection.scan_usb_device(&device_path).await?;
         if detections.is_empty() {
             println!("✅ Device is already clean - no threats found.");
@@ -765,7 +858,8 @@ impl UsbProtectCommand {
                 Ok(_) => {
                     cleaned_count += 1;
                     if verbose {
-                        println!("  ✅ {}: {}", 
+                        println!(
+                            "  ✅ {}: {}",
                             match detection.recommended_action {
                                 hadron_core::UsbThreatAction::Block => "Blocked",
                                 hadron_core::UsbThreatAction::Quarantine => "Quarantined",
@@ -850,11 +944,12 @@ impl UsbProtectCommand {
         let devices_monitored = 3;
         let threats_blocked_today = 7;
         let last_scan = "2 hours ago";
-        println!("Status: {}", 
-            if protection_enabled { 
-                "🟢 ACTIVE".to_string() 
-            } else { 
-                "🔴 DISABLED".to_string() 
+        println!(
+            "Status: {}",
+            if protection_enabled {
+                "🟢 ACTIVE".to_string()
+            } else {
+                "🔴 DISABLED".to_string()
             }
         );
         if protection_enabled {
@@ -864,10 +959,38 @@ impl UsbProtectCommand {
         }
         if verbose {
             println!("\nProtection Features:");
-            println!("  • Autorun Blocking: {}", if protection_enabled { "✅ Enabled" } else { "❌ Disabled" });
-            println!("  • Shortcut Virus Detection: {}", if protection_enabled { "✅ Enabled" } else { "❌ Disabled" });
-            println!("  • Hidden Malware Scanning: {}", if protection_enabled { "✅ Enabled" } else { "❌ Disabled" });
-            println!("  • Real-time Monitoring: {}", if protection_enabled { "✅ Enabled" } else { "❌ Disabled" });
+            println!(
+                "  • Autorun Blocking: {}",
+                if protection_enabled {
+                    "✅ Enabled"
+                } else {
+                    "❌ Disabled"
+                }
+            );
+            println!(
+                "  • Shortcut Virus Detection: {}",
+                if protection_enabled {
+                    "✅ Enabled"
+                } else {
+                    "❌ Disabled"
+                }
+            );
+            println!(
+                "  • Hidden Malware Scanning: {}",
+                if protection_enabled {
+                    "✅ Enabled"
+                } else {
+                    "❌ Disabled"
+                }
+            );
+            println!(
+                "  • Real-time Monitoring: {}",
+                if protection_enabled {
+                    "✅ Enabled"
+                } else {
+                    "❌ Disabled"
+                }
+            );
             if protection_enabled {
                 println!("\nRecent Activity:");
                 println!("  • 14:32 - Blocked autorun.inf on USB Drive");
@@ -877,7 +1000,11 @@ impl UsbProtectCommand {
         }
         Ok(())
     }
-    pub async fn quarantine_file(_api_client: &ApiClient, file_path: &str, verbose: bool) -> Result<()> {
+    pub async fn quarantine_file(
+        _api_client: &ApiClient,
+        file_path: &str,
+        verbose: bool,
+    ) -> Result<()> {
         println!("=== Quarantine File ===");
         let path = std::path::PathBuf::from(file_path);
         if !path.exists() {
@@ -887,7 +1014,8 @@ impl UsbProtectCommand {
         if verbose {
             println!("Quarantining file: {}", path.display());
         }
-        let usb_protection = hadron_core::UsbProtection::new(std::path::PathBuf::from("/tmp/quarantine"));
+        let usb_protection =
+            hadron_core::UsbProtection::new(std::path::PathBuf::from("/tmp/quarantine"));
         let detection = hadron_core::UsbThreatDetection {
             threat_type: hadron_core::UsbThreatType::Unknown,
             file_path: path,
@@ -919,7 +1047,12 @@ impl UsbProtectCommand {
         println!("Warning: Restored file may still contain threats. Scan before use.");
         Ok(())
     }
-    pub async fn immunize_device(api_client: &ApiClient, device_id: &str, force: bool, verbose: bool) -> Result<()> {
+    pub async fn immunize_device(
+        api_client: &ApiClient,
+        device_id: &str,
+        force: bool,
+        verbose: bool,
+    ) -> Result<()> {
         println!("=== USB Device Immunization ===");
         let devices = api_client.get_removable_devices().await;
         let device = devices.iter().find(|d| d.device_id == device_id);
@@ -933,7 +1066,8 @@ impl UsbProtectCommand {
             println!("Device: {}", device_name);
             println!("Path: {}", device_path.display());
         }
-        let usb_protection = hadron_core::UsbProtection::new(std::path::PathBuf::from("/tmp/quarantine"));
+        let usb_protection =
+            hadron_core::UsbProtection::new(std::path::PathBuf::from("/tmp/quarantine"));
         if usb_protection.is_usb_immunized(&device_path).await {
             println!("✅ Device is already immunized!");
             if verbose {
@@ -990,7 +1124,12 @@ impl UsbProtectCommand {
         }
         Ok(())
     }
-    pub async fn remove_immunization(api_client: &ApiClient, device_id: &str, force: bool, verbose: bool) -> Result<()> {
+    pub async fn remove_immunization(
+        api_client: &ApiClient,
+        device_id: &str,
+        force: bool,
+        verbose: bool,
+    ) -> Result<()> {
         println!("=== Remove USB Immunization ===");
         let devices = api_client.get_removable_devices().await;
         let device = devices.iter().find(|d| d.device_id == device_id);
@@ -1004,7 +1143,8 @@ impl UsbProtectCommand {
             println!("Device: {}", device_name);
             println!("Path: {}", device_path.display());
         }
-        let usb_protection = hadron_core::UsbProtection::new(std::path::PathBuf::from("/tmp/quarantine"));
+        let usb_protection =
+            hadron_core::UsbProtection::new(std::path::PathBuf::from("/tmp/quarantine"));
         if !usb_protection.is_usb_immunized(&device_path).await {
             println!("ℹ️  Device is not immunized.");
             return Ok(());
@@ -1039,7 +1179,10 @@ impl UsbProtectCommand {
                     }
                 }
                 println!("\n⚠️  WARNING: Your USB device is now vulnerable to viruses!");
-                println!("Consider re-immunizing with: hadron-cli usb-protect immunize {}", device_id);
+                println!(
+                    "Consider re-immunizing with: hadron-cli usb-protect immunize {}",
+                    device_id
+                );
             }
             Err(e) => {
                 println!("❌ Failed to remove immunization: {}", e);
@@ -1062,7 +1205,7 @@ impl NetworkCommand {
             println!("\nDetailed Statistics:");
             println!("  Bytes Processed: 2.3 GB");
             println!("  Average Packet Size: 1,247 bytes");
-            println!  ("  Analysis Rate: 1,250 packets/sec");
+            println!("  Analysis Rate: 1,250 packets/sec");
             println!("  CPU Usage: 3.2%");
             println!("  Memory Usage: 45 MB");
             println!("\nRecent Threats:");
@@ -1080,7 +1223,9 @@ impl NetworkCommand {
             println!("Checking URL: {}", url);
         }
         tokio::time::sleep(tokio::time::Duration::from_millis(800)).await;
-        let (reputation_score, categories, should_block) = if url.contains("malware") || url.contains("phishing") {
+        let (reputation_score, categories, should_block) = if url.contains("malware")
+            || url.contains("phishing")
+        {
             (-85, vec!["malware", "phishing"], true)
         } else if url.contains("suspicious") || url.contains("bad") {
             (-45, vec!["suspicious"], true)
@@ -1106,10 +1251,26 @@ impl NetworkCommand {
         if verbose {
             println!("\nDetailed Analysis:");
             println!("  Domain Age: {} days", if should_block { 5 } else { 2847 });
-            println!("  SSL Certificate: {}", if should_block { "Invalid" } else { "Valid" });
-            println!("  Blacklist Status: {}", if should_block { "Listed" } else { "Clean" });
-            println!("  Geographic Location: {}", if should_block { "Unknown" } else { "United States" });
-            println!("  Last Scanned: {}", chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC"));
+            println!(
+                "  SSL Certificate: {}",
+                if should_block { "Invalid" } else { "Valid" }
+            );
+            println!(
+                "  Blacklist Status: {}",
+                if should_block { "Listed" } else { "Clean" }
+            );
+            println!(
+                "  Geographic Location: {}",
+                if should_block {
+                    "Unknown"
+                } else {
+                    "United States"
+                }
+            );
+            println!(
+                "  Last Scanned: {}",
+                chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
+            );
             if should_block {
                 println!("\nThreat Indicators:");
                 println!("  - Domain recently registered");
@@ -1120,8 +1281,9 @@ impl NetworkCommand {
         Ok(())
     }
     pub async fn check_ip(_api_client: &ApiClient, ip: &str, verbose: bool) -> Result<()> {
-        let ip_addr: IpAddr = ip.parse()
-            .map_err(|_| hadron_core::AntivirusError::Internal(format!("Invalid IP address: {}", ip)))?;
+        let ip_addr: IpAddr = ip.parse().map_err(|_| {
+            hadron_core::AntivirusError::Internal(format!("Invalid IP address: {}", ip))
+        })?;
         if verbose {
             println!("Checking IP reputation: {}", ip);
             println!("Querying threat intelligence databases...");
@@ -1132,10 +1294,10 @@ impl NetworkCommand {
         let is_private = match ip_addr {
             IpAddr::V4(ipv4) => {
                 let octets = ipv4.octets();
-                octets[0] == 10 || 
-                (octets[0] == 172 && octets[1] >= 16 && octets[1] <= 31) ||
-                (octets[0] == 192 && octets[1] == 168) ||
-                octets[0] == 127
+                octets[0] == 10
+                    || (octets[0] == 172 && octets[1] >= 16 && octets[1] <= 31)
+                    || (octets[0] == 192 && octets[1] == 168)
+                    || octets[0] == 127
             }
             IpAddr::V6(_) => false,
         };
@@ -1169,11 +1331,30 @@ impl NetworkCommand {
         }
         if verbose {
             println!("\nDetailed Analysis:");
-            println!("  IP Type: {}", if is_private { "Private" } else { "Public" });
-            println!("  Tor Exit Node: {}", if is_malicious { "Yes" } else { "No" });
-            println!("  VPN/Proxy: {}", if reputation_score < 50 { "Possible" } else { "No" });
-            println!("  Blacklist Status: {}", if is_malicious { "Listed" } else { "Clean" });
-            println!("  Last Scanned: {}", chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC"));
+            println!(
+                "  IP Type: {}",
+                if is_private { "Private" } else { "Public" }
+            );
+            println!(
+                "  Tor Exit Node: {}",
+                if is_malicious { "Yes" } else { "No" }
+            );
+            println!(
+                "  VPN/Proxy: {}",
+                if reputation_score < 50 {
+                    "Possible"
+                } else {
+                    "No"
+                }
+            );
+            println!(
+                "  Blacklist Status: {}",
+                if is_malicious { "Listed" } else { "Clean" }
+            );
+            println!(
+                "  Last Scanned: {}",
+                chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
+            );
             if is_malicious {
                 println!("\nThreat Indicators:");
                 println!("  - Known botnet member");
@@ -1183,10 +1364,18 @@ impl NetworkCommand {
         }
         Ok(())
     }
-    pub async fn configure(_api_client: &ApiClient, enable: Option<bool>, interfaces: Option<Vec<String>>, verbose: bool) -> Result<()> {
+    pub async fn configure(
+        _api_client: &ApiClient,
+        enable: Option<bool>,
+        interfaces: Option<Vec<String>>,
+        verbose: bool,
+    ) -> Result<()> {
         println!("=== Network Monitoring Configuration ===");
         if let Some(enabled) = enable {
-            println!("Network monitoring: {}", if enabled { "ENABLED" } else { "DISABLED" });
+            println!(
+                "Network monitoring: {}",
+                if enabled { "ENABLED" } else { "DISABLED" }
+            );
             if verbose {
                 if enabled {
                     println!("  - Real-time packet analysis: ON");

@@ -936,7 +936,7 @@ icon=autorun.ico
         let mut created_files = Vec::new();
         let protection_folders = [
             "System Volume Information",
-            "RECYCLER", 
+            "RECYCLER",
             "$RECYCLE.BIN",
             "System32",
             "Windows",
@@ -980,12 +980,12 @@ icon=autorun.ico
              WARNING: Do not delete protection files!\n\
              Deleting these files will make your USB vulnerable to viruses.\n\n\
              For more information visit: https:
-            Utc::now().format("%Y-%m-%d %H:%M:%S UTC"),
+            Utc::now().format("%Y-%m-%d %H:%M:%S UTC "),
             env!("CARGO_PKG_VERSION")
         );
         fs::write(&protection_file, protection_content).await?;
         created_files.push(protection_file.to_string_lossy().to_string());
-        let system_protection = device_path.join(".hadron_protection");
+        let system_protection = device_path.join("hadron_protection");
         let system_content = format!(
             "HADRON_PROTECTION_VERSION={}\n\
              PROTECTION_DATE={}\n\
@@ -998,7 +998,7 @@ icon=autorun.ico
         fs::write(&system_protection, system_content).await?;
         self.make_file_readonly_hidden(&system_protection).await?;
         created_files.push(system_protection.to_string_lossy().to_string());
-        info!("Created HADRON protection markers");
+        info!("Created HADRON protection markers ");
         Ok(created_files)
     }
     async fn make_file_readonly_hidden(&self, file_path: &Path) -> Result<()> {
@@ -1006,7 +1006,7 @@ icon=autorun.ico
         {
             use std::process::Command;
             let _output = Command::new("cmd")
-                .args(&["/C", "attrib", "+R", "+H", "+S", file_path.to_str().unwrap_or("")])
+                .args(&["/C ", "attrib", "+R ", "+H ", "+S ", file_path.to_str().unwrap_or("")])
                 .output();
         }
         #[cfg(unix)]
@@ -1021,17 +1021,17 @@ icon=autorun.ico
         Ok(())
     }
     pub async fn is_usb_immunized(&self, device_path: &Path) -> bool {
-        let protection_marker = device_path.join(".hadron_protection");
-        let autorun_protection = device_path.join("autorun.inf");
+        let protection_marker = device_path.join(".hadron_protection ");
+        let autorun_protection = device_path.join("autorun.inf ");
         protection_marker.exists() && autorun_protection.exists()
     }
     pub async fn remove_usb_immunization(&self, device_path: &Path) -> Result<Vec<String>> {
         info!("Removing USB immunization: {}", device_path.display());
         let mut removed_files = Vec::new();
         let protection_files = [
-            "autorun.inf",
-            "HADRON_USB_PROTECTION.txt", 
-            ".hadron_protection",
+            "autorun.inf ",
+            "HADRON_USB_PROTECTION.txt ",
+            ".hadron_protection ",
         ];
         for file_name in &protection_files {
             let file_path = device_path.join(file_name);
@@ -1043,16 +1043,16 @@ icon=autorun.ico
             }
         }
         let protection_folders = [
-            "System Volume Information",
-            "RECYCLER",
-            "$RECYCLE.BIN", 
-            "System32",
+            "System Volume Information ",
+            "RECYCLER ",
+            "$RECYCLE.BIN ",
+            "System32 ",
             "Windows",
         ];
         for folder_name in &protection_folders {
             let folder_path = device_path.join(folder_name);
             if folder_path.exists() {
-                let marker_path = folder_path.join("HADRON_PROTECTION.txt");
+                let marker_path = folder_path.join("HADRON_PROTECTION.txt ");
                 if marker_path.exists() {
                     self.remove_readonly_attribute(&marker_path).await?;
                     fs::remove_file(&marker_path).await?;
@@ -1063,7 +1063,7 @@ icon=autorun.ico
                 }
             }
         }
-        info!("USB immunization removal completed. Removed {} files", removed_files.len());
+        info!("USB immunization removal completed. Removed {} files ", removed_files.len());
         Ok(removed_files)
     }
     async fn remove_readonly_attribute(&self, file_path: &Path) -> Result<()> {
@@ -1071,7 +1071,7 @@ icon=autorun.ico
         {
             use std::process::Command;
             let _output = Command::new("cmd")
-                .args(&["/C", "attrib", "-R", "-H", "-S", file_path.to_str().unwrap_or("")])
+                .args(&["/C ", "attrib", "-R ", "-H ", "-S ", file_path.to_str().unwrap_or("")])
                 .output();
         }
         #[cfg(unix)]
@@ -1090,12 +1090,12 @@ icon=autorun.ico
         {
             use std::process::Command;
             let _output = Command::new("cmd")
-                .args(&["/C", "attrib", "-H", "-S", "/S", "/D", device_path.to_str().unwrap_or(".")])
+                .args(&["/C ", "attrib", "-H ", "-S ", "/S ", "/D ", device_path.to_str().unwrap_or(".")])
                 .output();
         }
         #[cfg(unix)]
         {
-            debug!("Unix systems don't typically have hidden attribute issues");
+            debug!("Unix systems don 't typically have hidden attribute issues ");
         }
         Ok(())
     }
@@ -1114,18 +1114,18 @@ mod tests {
     async fn test_pattern_matching() {
         let temp_dir = TempDir::new().unwrap();
         let protection = UsbProtection::new(temp_dir.path().to_path_buf());
-        assert!(protection.matches_pattern("test.exe", "*.exe"));
-        assert!(protection.matches_pattern("autorun.inf", "autorun.inf"));
-        assert!(!protection.matches_pattern("test.txt", "*.exe"));
+        assert!(protection.matches_pattern("test.exe ", "*.exe "));
+        assert!(protection.matches_pattern("autorun.inf ", "autorun.inf "));
+        assert!(!protection.matches_pattern("test.txt ", "*.exe "));
     }
     #[tokio::test]
     async fn test_autorun_detection() {
-        let temp_dir = TempDir::new().unwrap();
-        let protection = UsbProtection::new(temp_dir.path().to_path_buf());
-        let autorun_path = temp_dir.path().join("autorun.inf");
-        fs::write(&autorun_path, "[autorun]\nshellexecute=malware.exe\n").await.unwrap();
-        let detections = protection.check_autorun_threats(temp_dir.path()).await.unwrap();
-        assert!(!detections.is_empty());
-        assert_eq!(detections[0].threat_type as u8, UsbThreatType::AutorunWorm as u8);
+            let temp_dir = TempDir::new().unwrap();
+            let protection = UsbProtection::new(temp_dir.path().to_path_buf());
+            let autorun_path = temp_dir.path().join("autorun.inf ");
+            fs::write(&autorun_path, "[autorun]\nshellexecute=malware.exe\n").await.unwrap();
+            let detections = protection.check_autorun_threats(temp_dir.path()).await.unwrap();
+            assert!(!detections.is_empty());
+            assert_eq!(detections[0].threat_type as u8, UsbThreatType::AutorunWorm as u8);
+        }
     }
-}

@@ -36,3 +36,7 @@ windows = { workspace = true }
 [[bin]]
 name = "hadron-gui"
 path = "src/main.rs"
+
+[[bin]]
+name = "main_simple"
+path = "src/main_simple.rs"

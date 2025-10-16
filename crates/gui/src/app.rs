@@ -1,5 +1,6 @@
 use eframe::egui;
-use hadron_core::{SystemStatus, ScanType, ScanJobId, ScanStatus, ScanProgress, QuarantineEntry, AntivirusConfig, ScanResult, ThreatInfo, RemovableDevice};
+use hadron_core::{SystemStatus, ScanType, ScanJobId, ScanProgress, ScanResult, ThreatInfo};
+use hadron_core::config::AntivirusConfig;
 use crate::panels::{DashboardPanel, ScanPanel, QuarantinePanel, SettingsPanel, RemovableMediaPanel, ScanPanelAction, QuarantinePanelAction, SettingsPanelAction, RemovableMediaPanelAction};
 use crate::notifications::{NotificationManager, NotificationType};
 use crate::mock_api::MockApiClient;
@@ -415,7 +416,7 @@ impl AntivirusApp {
                     .split(';')
                     .map(|s| std::path::PathBuf::from(s.trim()))
                     .collect();
-                self.start_scan_async(hadron_core::ScanType::Custom(paths.clone()), paths);
+                self.start_scan_async(hadron_core::ScanType::CustomScan, paths);
             }
             ScanPanelAction::StartMemoryScan => {
                 self.start_flash_scan(FlashScanType::MemoryScan);
@@ -580,23 +581,23 @@ impl AntivirusApp {
         let scan_type_str = match scan_type {
             FlashScanType::QuickScan => {
                 self.flash_scan_status = "Quick scan in progress...".to_string();
-                ScanType::Quick
+                ScanType::QuickScan
             }
             FlashScanType::FullScan => {
                 self.flash_scan_status = "Full system scan in progress...".to_string();
-                ScanType::Full
+                ScanType::FullScan
             }
             FlashScanType::CustomScan => {
                 self.flash_scan_status = "Custom scan in progress...".to_string();
-                ScanType::Custom(vec![std::path::PathBuf::from("/")])
+                ScanType::CustomScan
             }
             FlashScanType::MemoryScan => {
                 self.flash_scan_status = "Memory scan in progress...".to_string();
-                ScanType::Memory
+                ScanType::OnDemand
             }
             FlashScanType::NetworkScan => {
                 self.flash_scan_status = "Network scan in progress...".to_string();
-                ScanType::Quick
+                ScanType::QuickScan
             }
         };
 
@@ -649,9 +650,15 @@ impl AntivirusApp {
                     severity: ThreatSeverity::Medium,
                     file_path: std::path::PathBuf::from("/tmp/suspicious_file.txt"),
                     file_hash: "abc123def456".to_string(),
+                    file_size: 1024,
                     detection_method: DetectionMethod::Heuristic,
-                    timestamp: chrono::Utc::now(),
+                    detection_time: chrono::Utc::now(),
+                    description: Some("Suspicious test file".to_string()),
+                    risk_score: 50,
+                    is_false_positive: false,
+                    metadata: std::collections::HashMap::new(),
                     additional_info: std::collections::HashMap::new(),
+                    timestamp: chrono::Utc::now(),
                 }
             })
         ];
@@ -982,3 +989,61 @@ impl AntivirusApp {
             }
         });
     }
+
+    // Stub implementations for missing methods
+    fn load_initial_removable_devices(&mut self) {
+        // TODO: Load initial removable devices
+    }
+
+    fn start_quick_scan(&mut self) {
+        self.start_flash_scan(FlashScanType::QuickScan);
+    }
+
+    fn start_full_scan(&mut self) {
+        self.start_flash_scan(FlashScanType::FullScan);
+    }
+
+    fn refresh_all_data(&mut self) {
+        // TODO: Refresh all data
+    }
+
+    fn simulate_threat_detection(&mut self) {
+        // TODO: Simulate threat detection
+    }
+
+    fn simulate_scan_completion(&mut self, _threats: u32, _files: u32) {
+        // TODO: Simulate scan completion
+    }
+
+    fn show_about_dialog(&mut self, _ctx: &egui::Context) {
+        // TODO: Show about dialog
+    }
+
+    fn is_service_connected(&self) -> bool {
+        true // Mock implementation
+    }
+
+    fn save_settings_async(&mut self) {
+        // TODO: Save settings asynchronously
+    }
+
+    fn scan_all_removable_devices(&mut self) {
+        // TODO: Scan all removable devices
+    }
+
+    fn scan_removable_device(&mut self, _device_id: String) {
+        // TODO: Scan specific removable device
+    }
+
+    fn clean_removable_device(&mut self, _device_id: String) {
+        // TODO: Clean specific removable device
+    }
+
+    fn set_device_trust(&mut self, _device_id: String, _trusted: bool) {
+        // TODO: Set device trust
+    }
+
+    fn refresh_removable_devices(&mut self) {
+        // TODO: Refresh removable devices
+    }
+}

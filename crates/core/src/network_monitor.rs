@@ -166,11 +166,11 @@ impl NetworkMonitorImpl {
             if let Some(host_end) = host_line.find('\r') {
                 let host = host_line[..host_end].trim();
                 if !host.is_empty() {
-                    urls.push(format!("http:
+                    urls.push(format!("http://{}", host));
                 }
             }
         }
-        let url_patterns = ["http:
+        let url_patterns = ["http://", "https://"];
         for pattern in &url_patterns {
             let mut start = 0;
             while let Some(pos) = payload_str[start..].find(pattern) {

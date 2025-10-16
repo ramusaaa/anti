@@ -171,6 +171,19 @@ pub struct ScanSettings {
     pub timeout_seconds: u32,
     pub heuristic_level: u8,
 }
+
+impl Default for ScanSettings {
+    fn default() -> Self {
+        Self {
+            scan_archives: true,
+            scan_email: true,
+            scan_network_drives: false,
+            max_file_size_mb: 100,
+            timeout_seconds: 300,
+            heuristic_level: 2,
+        }
+    }
+}
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct RealtimeSettings {
     pub enabled: bool,
@@ -178,6 +191,18 @@ pub struct RealtimeSettings {
     pub scan_on_write: bool,
     pub scan_downloads: bool,
     pub scan_removable_media: bool,
+}
+
+impl Default for RealtimeSettings {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            scan_on_access: true,
+            scan_on_write: true,
+            scan_downloads: true,
+            scan_removable_media: true,
+        }
+    }
 }
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct WhitelistEntry {
@@ -189,10 +214,22 @@ pub struct WhitelistEntry {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct EnterprisePolicy {
     pub policy_version: String,
-    pub scan_settings: ScanSettings,
-    pub realtime_settings: RealtimeSettings,
-    pub update_settings: UpdateSettings,
+    pub scan_settings: Option<ScanSettings>,
+    pub realtime_settings: Option<RealtimeSettings>,
+    pub update_settings: Option<UpdateSettings>,
     pub restrictions: PolicyRestrictions,
+}
+
+impl Default for EnterprisePolicy {
+    fn default() -> Self {
+        Self {
+            policy_version: "1.0".to_string(),
+            scan_settings: None,
+            realtime_settings: None,
+            update_settings: None,
+            restrictions: PolicyRestrictions::default(),
+        }
+    }
 }
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Policy {
@@ -212,6 +249,17 @@ pub struct UpdateSettings {
     pub update_server_url: String,
     pub use_delta_updates: bool,
 }
+
+impl Default for UpdateSettings {
+    fn default() -> Self {
+        Self {
+            auto_update: true,
+            update_frequency_hours: 24,
+            update_server_url: "https://updates.hadronav.com".to_string(),
+            use_delta_updates: true,
+        }
+    }
+}
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct PolicyRestrictions {
     pub allow_user_whitelist: bool,
@@ -219,12 +267,34 @@ pub struct PolicyRestrictions {
     pub allow_quarantine_restore: bool,
     pub require_admin_for_settings: bool,
 }
+
+impl Default for PolicyRestrictions {
+    fn default() -> Self {
+        Self {
+            allow_user_whitelist: true,
+            allow_disable_realtime: false,
+            allow_quarantine_restore: true,
+            require_admin_for_settings: true,
+        }
+    }
+}
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct UISettings {
     pub language: String,
     pub show_notifications: bool,
     pub notification_level: NotificationLevel,
     pub theme: UITheme,
+}
+
+impl Default for UISettings {
+    fn default() -> Self {
+        Self {
+            language: "en".to_string(),
+            show_notifications: true,
+            notification_level: NotificationLevel::ThreatsOnly,
+            theme: UITheme::System,
+        }
+    }
 }
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub enum NotificationLevel {

@@ -1,0 +1,16 @@
+{
+  "name": "hadron-antivirus-gui",
+  "version": "1.0.0",
+  "description": "HADRON Antivirus Modern GUI",
+  "main": "js/index.html",
+  "scripts": {
+    "dev": "python3 -m http.server 3000 --directory js",
+    "build": "echo 'Build completed'",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
+  },
+  "keywords": ["antivirus", "security", "tauri", "rust"],
+  "author": "HADRON Team",
+  "license": "MIT"
+}

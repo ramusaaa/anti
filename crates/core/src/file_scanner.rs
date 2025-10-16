@@ -102,7 +102,7 @@ impl FileScanner {
         debug!("Scanning file: {}", path.display());
         if self.should_exclude_file(path) {
             debug!("File excluded from scan: {}", path.display());
-            result.complete();
+            result.complete_scan();
             return Ok(result);
         }
         let metadata = match fs::metadata(path).await {
@@ -110,7 +110,7 @@ impl FileScanner {
             Err(e) => {
                 warn!("Failed to get metadata for {}: {}", path.display(), e);
                 result.add_error(path.to_path_buf(), format!("Metadata error: {}", e));
-                result.complete();
+                result.complete_scan();
                 return Ok(result);
             }
         };
@@ -118,11 +118,11 @@ impl FileScanner {
         let max_size = self.config.max_file_size_mb * 1024 * 1024;
         if file_size > max_size {
             debug!("File too large to scan: {} ({} bytes)", path.display(), file_size);
-            result.complete();
+            result.complete_scan();
             return Ok(result);
         }
         if metadata.is_dir() {
-            result.complete();
+            result.complete_scan();
             return Ok(result);
         }
         let file_content = match self.read_file_safely(path, file_size).await {
@@ -130,7 +130,7 @@ impl FileScanner {
             Err(e) => {
                 warn!("Failed to read file {}: {}", path.display(), e);
                 result.add_error(path.to_path_buf(), format!("Read error: {}", e));
-                result.complete();
+                result.complete_scan();
                 return Ok(result);
             }
         };
@@ -143,7 +143,7 @@ impl FileScanner {
             info!("Heuristic threat detected: {} in {}", threat.name, path.display());
             result.add_threat(threat);
         }
-        result.complete();
+        result.complete_scan();
         Ok(result)
     }
     fn should_exclude_file(&self, path: &Path) -> bool {
@@ -196,7 +196,7 @@ impl FileScanner {
             Err(e) => {
                 error!("Failed to read directory {}: {}", dir_path.display(), e);
                 combined_result.add_error(dir_path.to_path_buf(), format!("Directory read error: {}", e));
-                combined_result.complete();
+                combined_result.complete_scan();
                 return Ok(combined_result);
             }
         };
@@ -264,7 +264,7 @@ impl FileScanner {
                 }
             }
         }
-        combined_result.complete();
+        combined_result.complete_scan();
         info!("Directory scan completed: {} ({} files)", dir_path.display(), file_count);
         Ok(combined_result)
     }
@@ -276,47 +276,44 @@ impl FileScanner {
     pub fn get_statistics(&self) -> &FileScanStatistics {
         &self.scan_stats
     }
-    pub async fn delete_threat(&self, threat: &crate::types::ThreatInfo) -> Result<crate::types::ThreatActionResult> {
-        use crate::types::{ThreatAction, ThreatActionResult};
+    pub async fn delete_threat(&self, threat: &crate::types::ThreatInfo) -> Result<crate::types::ActionResult> {
+        use crate::types::{ActionType, ActionResult};
         use chrono::Utc;
         info!("Attempting to delete threat file: {}", threat.file_path.display());
         match tokio::fs::remove_file(&threat.file_path).await {
             Ok(()) => {
                 info!("Successfully deleted threat file: {}", threat.file_path.display());
-                Ok(ThreatActionResult {
-                    threat_id: threat.id,
-                    action: ThreatAction::Delete,
-                    success: true,
-                    message: format!("File deleted successfully: {}", threat.file_path.display()),
-                    timestamp: Utc::now(),
-                })
+                Ok(ActionResult::success(
+                    ActionType::Delete,
+                    threat.file_path.clone(),
+                    threat.id,
+                    format!("File deleted successfully: {}", threat.file_path.display())
+                ))
             }
             Err(e) => {
                 warn!("Failed to delete threat file {}: {}", threat.file_path.display(), e);
-                Ok(ThreatActionResult {
-                    threat_id: threat.id,
-                    action: ThreatAction::Delete,
-                    success: false,
-                    message: format!("Failed to delete file: {}", e),
-                    timestamp: Utc::now(),
-                })
+                Ok(ActionResult::failure(
+                    ActionType::Delete,
+                    threat.file_path.clone(),
+                    threat.id,
+                    format!("Failed to delete file: {}", e)
+                ))
             }
         }
     }
-    pub async fn quarantine_threat(&self, threat: &crate::types::ThreatInfo) -> Result<crate::types::ThreatActionResult> {
-        use crate::types::{ThreatAction, ThreatActionResult};
+    pub async fn quarantine_threat(&self, threat: &crate::types::ThreatInfo) -> Result<crate::types::ActionResult> {
+        use crate::types::{ActionType, ActionResult};
         use chrono::Utc;
         info!("Attempting to quarantine threat file: {}", threat.file_path.display());
         let quarantine_dir = std::path::PathBuf::from("quarantine");
         if let Err(e) = tokio::fs::create_dir_all(&quarantine_dir).await {
             warn!("Failed to create quarantine directory: {}", e);
-            return Ok(ThreatActionResult {
-                threat_id: threat.id,
-                action: ThreatAction::Quarantine,
-                success: false,
-                message: format!("Failed to create quarantine directory: {}", e),
-                timestamp: Utc::now(),
-            });
+            return Ok(ActionResult::failure(
+                ActionType::Quarantine,
+                threat.file_path.clone(),
+                threat.id,
+                format!("Failed to create quarantine directory: {}", e)
+            ));
         }
         let filename = threat.file_path.file_name()
             .and_then(|n| n.to_str())
@@ -325,23 +322,21 @@ impl FileScanner {
         match tokio::fs::rename(&threat.file_path, &quarantine_path).await {
             Ok(()) => {
                 info!("Successfully quarantined threat file to: {}", quarantine_path.display());
-                Ok(ThreatActionResult {
-                    threat_id: threat.id,
-                    action: ThreatAction::Quarantine,
-                    success: true,
-                    message: format!("File quarantined to: {}", quarantine_path.display()),
-                    timestamp: Utc::now(),
-                })
+                Ok(ActionResult::success(
+                    ActionType::Quarantine,
+                    threat.file_path.clone(),
+                    threat.id,
+                    format!("File quarantined to: {}", quarantine_path.display())
+                ))
             }
             Err(e) => {
                 warn!("Failed to quarantine threat file {}: {}", threat.file_path.display(), e);
-                Ok(ThreatActionResult {
-                    threat_id: threat.id,
-                    action: ThreatAction::Quarantine,
-                    success: false,
-                    message: format!("Failed to quarantine file: {}", e),
-                    timestamp: Utc::now(),
-                })
+                Ok(ActionResult::failure(
+                    ActionType::Quarantine,
+                    threat.file_path.clone(),
+                    threat.id,
+                    format!("Failed to quarantine file: {}", e)
+                ))
             }
         }
     }
@@ -377,13 +372,13 @@ impl Scanner for FileScanner {
     async fn scan_memory(&self, _process_id: u32) -> Result<ScanResult> {
         let scan_id = Uuid::new_v4();
         let mut result = ScanResult::new(scan_id);
-        result.complete();
+        result.complete_scan();
         Ok(result)
     }
     async fn scan_network_packet(&self, _packet: &crate::NetworkPacket) -> Result<ScanResult> {
         let scan_id = Uuid::new_v4();
         let mut result = ScanResult::new(scan_id);
-        result.complete();
+        result.complete_scan();
         Ok(result)
     }
     async fn start_scan(&self, scan_type: crate::types::ScanType, _targets: Vec<PathBuf>) -> Result<ScanJobId> {

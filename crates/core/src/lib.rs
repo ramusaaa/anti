@@ -13,6 +13,7 @@ pub mod usb_protection;
 pub mod sandbox;
 pub use error::*;
 pub use types::*;
+pub use types::{RemovableDevice, DeviceType, QuarantineEntry};
 pub use logging::*;
 pub use memory_scanner::*;
 pub use network_monitor::*;

@@ -1,4 +1,18 @@
 use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum HadronError {
+    #[error("Invalid input: {0}")]
+    InvalidInput(String),
+    #[error("Operation failed: {0}")]
+    OperationFailed(String),
+    #[error("Resource not found: {0}")]
+    ResourceNotFound(String),
+    #[error("Permission denied: {0}")]
+    PermissionDenied(String),
+    #[error("Internal error: {0}")]
+    Internal(String),
+}
 #[derive(Debug, Error)]
 pub enum AntivirusError {
     #[error("Scan engine error: {0}")]

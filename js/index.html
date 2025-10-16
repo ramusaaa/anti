@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HADRON Antivirus</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .scan-animation {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-shield-alt text-3xl"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold">HADRON Antivirus</h1>
+                        <p class="text-sm opacity-90">Gelişmiş Windows Koruması</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <p class="text-sm">Gerçek Zamanlı Koruma</p>
+                        <p class="text-xs opacity-90" id="protection-status">Aktif</p>
+                    </div>
+                    <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="container mx-auto px-6">
+            <div class="flex space-x-8">
+                <button class="nav-btn py-4 px-2 border-b-2 border-blue-500 text-blue-600 font-medium" data-tab="dashboard">
+                    <i class="fas fa-tachometer-alt mr-2"></i>Ana Sayfa
+                </button>
+                <button class="nav-btn py-4 px-2 text-gray-600 hover:text-blue-600" data-tab="scan">
+                    <i class="fas fa-search mr-2"></i>Tarama
+                </button>
+                <button class="nav-btn py-4 px-2 text-gray-600 hover:text-blue-600" data-tab="quarantine">
+                    <i class="fas fa-lock mr-2"></i>Karantina
+                </button>
+                <button class="nav-btn py-4 px-2 text-gray-600 hover:text-blue-600" data-tab="devices">
+                    <i class="fas fa-usb mr-2"></i>Cihazlar
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-6 py-8">
+        <div id="dashboard" class="tab-content">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow-md p-6 card-hover transition-all duration-300">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 text-green-600">
+                            <i class="fas fa-shield-check text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-600">Koruma Durumu</p>
+                            <p class="text-lg font-semibold text-green-600">Aktif</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 card-hover transition-all duration-300">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                            <i class="fas fa-clock text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-600">Son Güncelleme</p>
+                            <p class="text-lg font-semibold" id="last-update">Bugün</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 card-hover transition-all duration-300">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-red-100 text-red-600">
+                            <i class="fas fa-exclamation-triangle text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-600">Tespit Edilen Tehdit</p>
+                            <p class="text-lg font-semibold" id="threats-count">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 card-hover transition-all duration-300">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                            <i class="fas fa-info-circle text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-600">Versiyon</p>
+                            <p class="text-lg font-semibold" id="version">1.0.0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h2 class="text-xl font-semibold mb-4">Hızlı İşlemler</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button id="quick-scan-btn" class="flex items-center justify-center p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                        <i class="fas fa-search mr-3"></i>
+                        Hızlı Tarama
+                    </button>
+                    <button id="full-scan-btn" class="flex items-center justify-center p-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+                        <i class="fas fa-search-plus mr-3"></i>
+                        Tam Tarama
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="scan" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">Sistem Taraması</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <button class="scan-type-btn p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition-colors" data-type="quick">
+                        <i class="fas fa-bolt text-2xl text-blue-500 mb-2"></i>
+                        <h3 class="font-semibold">Hızlı Tarama</h3>
+                        <p class="text-sm text-gray-600">Kritik alanları tarar (~2 dk)</p>
+                    </button>
+                    
+                    <button class="scan-type-btn p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition-colors" data-type="full">
+                        <i class="fas fa-search text-2xl text-green-500 mb-2"></i>
+                        <h3 class="font-semibold">Tam Tarama</h3>
+                        <p class="text-sm text-gray-600">Tüm sistemi tarar (~30 dk)</p>
+                    </button>
+                    
+                    <button class="scan-type-btn p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition-colors" data-type="custom">
+                        <i class="fas fa-cog text-2xl text-purple-500 mb-2"></i>
+                        <h3 class="font-semibold">Özel Tarama</h3>
+                        <p class="text-sm text-gray-600">Seçili klasörleri tarar</p>
+                    </button>
+                </div>
+
+                <div id="scan-progress" class="hidden">
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm text-gray-600 mb-1">
+                            <span id="scan-status">Tarama başlatılıyor...</span>
+                            <span id="scan-percentage">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div id="progress-bar" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <button id="cancel-scan-btn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+                        Taramayı Durdur
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="quarantine" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">Karantina</h2>
+                <div id="quarantine-list">
+                    <p class="text-gray-500">Karantina verileri yükleniyor...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="devices" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">Çıkarılabilir Cihazlar</h2>
+                <div id="devices-list">
+                    <p class="text-gray-500">Cihaz verileri yükleniyor...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="custom-scan-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-96 max-h-96 overflow-y-auto">
+            <h3 class="text-lg font-semibold mb-4">Özel Tarama - Klasör Seçin</h3>
+            <div class="space-y-2 mb-4">
+                <label class="flex items-center">
+                    <input type="checkbox" class="mr-2" value="/Users" checked>
+                    <i class="fas fa-folder mr-2 text-blue-500"></i>
+                    Kullanıcı Klasörleri (/Users)
+                </label>
+                <label class="flex items-center">
+                    <input type="checkbox" class="mr-2" value="/Applications">
+                    <i class="fas fa-folder mr-2 text-blue-500"></i>
+                    Uygulamalar (/Applications)
+                </label>
+                <label class="flex items-center">
+                    <input type="checkbox" class="mr-2" value="/System">
+                    <i class="fas fa-folder mr-2 text-blue-500"></i>
+                    Sistem Dosyaları (/System)
+                </label>
+                <label class="flex items-center">
+                    <input type="checkbox" class="mr-2" value="/Library">
+                    <i class="fas fa-folder mr-2 text-blue-500"></i>
+                    Kütüphane (/Library)
+                </label>
+                <label class="flex items-center">
+                    <input type="checkbox" class="mr-2" value="/tmp">
+                    <i class="fas fa-folder mr-2 text-blue-500"></i>
+                    Geçici Dosyalar (/tmp)
+                </label>
+                <label class="flex items-center">
+                    <input type="checkbox" class="mr-2" value="/var">
+                    <i class="fas fa-folder mr-2 text-blue-500"></i>
+                    Değişken Dosyalar (/var)
+                </label>
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button id="cancel-custom-scan" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+                    İptal
+                </button>
+                <button id="start-custom-scan" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                    Taramayı Başlat
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        if (window.__TAURI__) {
+            console.log('Tauri API loaded successfully');
+        } else {
+            console.log('Running in browser mode - using mock API');
+        }
+    </script>
+    <script type="module" src="./main.js"></script>
+</body>
+</html>

@@ -1,7 +1,8 @@
 use hadron_core::{
-    EventLogger, StructuredEvent, EventSeverity, LoggingConfig, AuditEvent, AuditEventType, AuditResult,
-    log_structured_security_event, SecurityEventSeverity
+    EventLogger, StructuredEvent, EventSeverity, AuditEvent, AuditEventType, AuditResult,
+    log_structured_security_event
 };
+use hadron_core::config::LoggingConfig;
 use std::path::PathBuf;
 use chrono::Utc;
 use serde_json;

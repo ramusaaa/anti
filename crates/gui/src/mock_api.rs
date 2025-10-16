@@ -1,4 +1,5 @@
-use hadron_core::{Result, ScanType, ScanJobId, ScanStatus, SystemStatus, ScanProgress, QuarantineEntry, AntivirusConfig, RemovableDevice, DeviceType};
+use hadron_core::{Result, ScanType, ScanJobId, ScanStatus, SystemStatus, ScanProgress, ScanResult, QuarantineEntry, RemovableDevice, DeviceType};
+use hadron_core::config::AntivirusConfig;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -30,13 +31,20 @@ impl MockApiClient {
     }
     pub async fn get_system_status(&self) -> Result<SystemStatus> {
         Ok(SystemStatus {
-            realtime_protection_enabled: true,
-            engine_version: "1.0.0".to_string(),
-            signature_version: "2024.01.01".to_string(),
-            last_scan_time: Some(chrono::Utc::now()),
-            last_update_time: Some(chrono::Utc::now()),
-            threats_detected_today: 0,
+            version: "1.0.0".to_string(),
+            last_update: "2024.01.01".to_string(),
+            real_time_protection: true,
+            last_scan: Some(chrono::Utc::now()),
+            threats_blocked_today: 0,
+            total_threats_blocked: 0,
+            license_status: "Active".to_string(),
+            scan_engine_version: "1.0.0".to_string(),
+            signature_database_version: "2024.01.01".to_string(),
+            uptime_seconds: 3600,
+            memory_usage_mb: 256,
+            cpu_usage_percent: 15.5,
             quarantine_count: 0,
+            system_health: "Good".to_string(),
         })
     }
     pub async fn get_scan_progress(&self, job_id: ScanJobId) -> Result<ScanProgress> {
@@ -44,10 +52,10 @@ impl MockApiClient {
             scan_id: job_id,
             percentage_complete: 50.0,
             files_scanned: 1000,
-            total_files: 2000,
+            total_files: Some(2000),
             threats_found: 0,
             current_file: Some(PathBuf::from("C:\\Windows\\System32\\kernel32.dll")),
-            estimated_time_remaining_ms: Some(30000),
+            estimated_time_remaining: Some(30000),
         })
     }
     pub async fn get_scan_result(&self, job_id: ScanJobId) -> Result<hadron_core::ScanResult> {
@@ -85,22 +93,16 @@ impl MockApiClient {
         }
         Ok(hadron_core::ScanResult {
             scan_id: job_id,
+            scan_type: ScanType::QuickScan,
+            status: ScanStatus::Completed,
             start_time: chrono::Utc::now() - chrono::Duration::minutes(5),
             end_time: Some(chrono::Utc::now()),
-            status: ScanStatus::Completed,
             scanned_files: 15420,
             threats_found: threats,
             errors: vec![],
-            statistics: hadron_core::ScanStatistics {
-                total_files: 15420,
-                scanned_files: 15420,
-                skipped_files: 0,
-                infected_files: 3,
-                cleaned_files: 2,
-                quarantined_files: 3,
-                scan_duration_ms: 300000,
-                average_scan_time_ms: 19.4,
-            },
+            scan_path: Some(std::path::PathBuf::from("/")),
+            total_size_scanned: 1024 * 1024 * 100, // 100MB
+            scan_duration_ms: Some(300000),
         })
     }
     pub async fn get_quarantine_list(&self) -> Result<Vec<QuarantineEntry>> {
@@ -131,42 +133,36 @@ impl MockApiClient {
     pub async fn get_removable_devices(&self) -> Result<Vec<RemovableDevice>> {
         let mut devices = Vec::new();
         let device1 = RemovableDevice {
-            device_id: "usb_001".to_string(),
-            mount_point: PathBuf::from("/Volumes/KINGSTON"),
-            device_name: "Kingston DataTraveler".to_string(),
+            id: "usb_001".to_string(),
+            name: "Kingston DataTraveler".to_string(),
             device_type: DeviceType::UsbDrive,
-            file_system: "FAT32".to_string(),
-            total_size_bytes: 8_000_000_000,
-            free_space_bytes: 6_000_000_000,
-            mount_time: chrono::Utc::now() - chrono::Duration::minutes(30),
-            last_scan_time: None,
+            mount_path: PathBuf::from("/Volumes/KINGSTON"),
+            size_bytes: 8_000_000_000,
             is_trusted: false,
+            last_scan: None,
+            threat_count: 0,
         };
         devices.push(device1);
         let device2 = RemovableDevice {
-            device_id: "sd_001".to_string(),
-            mount_point: PathBuf::from("/Volumes/SANDISK"),
-            device_name: "SanDisk Ultra".to_string(),
+            id: "sd_001".to_string(),
+            name: "SanDisk Ultra".to_string(),
             device_type: DeviceType::SdCard,
-            file_system: "exFAT".to_string(),
-            total_size_bytes: 32_000_000_000,
-            free_space_bytes: 20_000_000_000,
-            mount_time: chrono::Utc::now() - chrono::Duration::hours(1),
-            last_scan_time: Some(chrono::Utc::now() - chrono::Duration::hours(2)),
+            mount_path: PathBuf::from("/Volumes/SANDISK"),
+            size_bytes: 32_000_000_000,
             is_trusted: true,
+            last_scan: Some(chrono::Utc::now() - chrono::Duration::hours(2)),
+            threat_count: 0,
         };
         devices.push(device2);
         let device3 = RemovableDevice {
-            device_id: "hdd_001".to_string(),
-            mount_point: PathBuf::from("/Volumes/BACKUP"),
-            device_name: "Seagate Backup Plus".to_string(),
+            id: "hdd_001".to_string(),
+            name: "Seagate Backup Plus".to_string(),
             device_type: DeviceType::ExternalHdd,
-            file_system: "NTFS".to_string(),
-            total_size_bytes: 1_000_000_000_000,
-            free_space_bytes: 500_000_000_000,
-            mount_time: chrono::Utc::now() - chrono::Duration::hours(3),
-            last_scan_time: Some(chrono::Utc::now() - chrono::Duration::days(1)),
+            mount_path: PathBuf::from("/Volumes/BACKUP"),
+            size_bytes: 1_000_000_000_000,
             is_trusted: false,
+            last_scan: Some(chrono::Utc::now() - chrono::Duration::days(1)),
+            threat_count: 2,
         };
         devices.push(device3);
         Ok(devices)
@@ -210,22 +206,16 @@ impl MockApiClient {
         let files_scanned = if device_id.contains("hdd") { 5000 } else { 150 };
         Ok(hadron_core::ScanResult {
             scan_id,
+            scan_type: ScanType::CustomScan,
+            status: ScanStatus::Completed,
             start_time: chrono::Utc::now() - chrono::Duration::seconds(30),
             end_time: Some(chrono::Utc::now()),
-            status: ScanStatus::Completed,
             scanned_files: files_scanned,
             threats_found: threats.clone(),
             errors: vec![],
-            statistics: hadron_core::ScanStatistics {
-                total_files: files_scanned,
-                scanned_files: files_scanned,
-                skipped_files: 0,
-                infected_files: threats.len() as u64,
-                cleaned_files: 0,
-                quarantined_files: threats.len() as u64,
-                scan_duration_ms: 30000,
-                average_scan_time_ms: if files_scanned > 0 { 30000.0 / files_scanned as f64 } else { 0.0 },
-            },
+            scan_path: Some(std::path::PathBuf::from(&device_id)),
+            total_size_scanned: files_scanned * 1024, // Approximate size
+            scan_duration_ms: Some(30000),
         })
     }
     pub async fn clean_removable_device(&self, device_id: String) -> Result<()> {
